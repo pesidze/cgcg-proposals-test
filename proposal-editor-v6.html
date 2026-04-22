@@ -1,0 +1,890 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CGCG Proposal Editor</title>
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:wght@300;400;500&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#1e2d4a;
+  --text:#1a1a1a;
+  --mid:#555;
+  --border:#e0e0e0;
+  --accent:#c0c8d8;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'DM Sans',sans-serif;background:#d8dce6;color:var(--text);}
+
+/* ── LAYOUT ── */
+.app{display:grid;grid-template-columns:390px 1fr;min-height:100vh;}
+
+/* ── FORM PANEL ── */
+.fp{background:#f4f5f8;border-right:1px solid var(--border);position:sticky;top:0;height:100vh;overflow-y:auto;padding:1.4rem;}
+.fp::-webkit-scrollbar{width:5px;}
+.fp::-webkit-scrollbar-thumb{background:#ccc;border-radius:3px;}
+.fp-logo{font-size:1rem;font-weight:700;color:var(--navy);margin-bottom:1.2rem;}
+.fp-logo span{color:#999;font-weight:400;font-size:.8rem;margin-left:.4rem;}
+
+.sh{font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:var(--navy);
+  border-bottom:2px solid var(--navy);padding-bottom:.35rem;margin-top:1.2rem;margin-bottom:.7rem;}
+
+.fg{margin-bottom:.65rem;}
+.fg label{display:block;font-size:.72rem;font-weight:600;color:#555;margin-bottom:.25rem;}
+.fg input,.fg textarea{width:100%;padding:.5rem .65rem;border:1px solid #ddd;border-radius:4px;
+  font-family:'DM Sans',sans-serif;font-size:.78rem;background:white;transition:border .2s;}
+.fg input:focus,.fg textarea:focus{outline:none;border-color:var(--navy);}
+.fg textarea{resize:vertical;min-height:56px;}
+.fg-row{display:grid;grid-template-columns:1fr 1fr;gap:.5rem;}
+.locked{width:100%;padding:.5rem .65rem;border:1px solid #e8e8e8;border-radius:4px;
+  font-size:.78rem;background:#f0f0f0;color:#888;}
+
+/* category blocks */
+.cat-block{background:white;border:1px solid #d8dce6;border-radius:6px;margin-bottom:.6rem;overflow:hidden;}
+.cat-block.off{opacity:.5;}
+.cat-hdr{display:flex;align-items:center;gap:.4rem;padding:.5rem .65rem;background:#f0f2f7;border-bottom:1px solid #e0e3ec;}
+.cat-chk{width:15px;height:15px;min-width:15px;accent-color:var(--navy);cursor:pointer;}
+.cat-name-input{flex:1;font-size:.76rem;font-weight:700;color:var(--navy);border:none;background:transparent;font-family:'DM Sans',sans-serif;}
+.cat-name-input:focus{outline:none;text-decoration:underline;}
+.cat-del-btn{background:none;border:none;color:#ccc;font-size:.85rem;cursor:pointer;line-height:1;padding:0;}
+.cat-del-btn:hover{color:#c33;}
+.cat-body{padding:.45rem .6rem .55rem;}
+
+.item-row{display:flex;align-items:flex-start;gap:.4rem;margin-bottom:.3rem;
+  background:#fafafa;border:1px solid #eee;border-radius:4px;padding:.38rem .5rem;}
+.item-row.off{opacity:.4;}
+.item-chk{width:14px;height:14px;min-width:14px;accent-color:var(--navy);margin-top:3px;cursor:pointer;}
+.item-txt{flex:1;font-size:.7rem;line-height:1.45;color:#333;border:none;resize:none;
+  font-family:'DM Sans',sans-serif;background:transparent;min-height:30px;}
+.item-txt:focus{outline:none;}
+.item-del{background:none;border:none;color:#ddd;font-size:.78rem;cursor:pointer;padding:0;line-height:1;}
+.item-del:hover{color:#c33;}
+.add-item-btn{width:100%;padding:.32rem;background:transparent;border:1px dashed #c8ccd8;border-radius:4px;
+  font-size:.67rem;color:#999;cursor:pointer;margin-top:.28rem;font-family:'DM Sans',sans-serif;}
+.add-item-btn:hover{border-color:var(--navy);color:var(--navy);background:#f0f4ff;}
+
+/* price row */
+.price-row{display:flex;align-items:center;gap:.5rem;background:white;border:1px solid #e0e3ec;
+  border-radius:4px;padding:.45rem .65rem;margin-bottom:.35rem;}
+.price-label{flex:1;font-size:.75rem;font-weight:600;color:#333;}
+.price-hint{font-size:.62rem;color:#aaa;}
+.price-input{width:110px;text-align:right;border:1px solid #ddd;border-radius:4px;
+  padding:.35rem .5rem;font-size:.78rem;font-family:'DM Sans',sans-serif;}
+.price-input:focus{outline:none;border-color:var(--navy);}
+
+/* svc item */
+.svc-item{background:white;border:1px solid #e0e0e0;border-radius:4px;padding:.65rem;margin-bottom:.4rem;}
+.svc-top{display:flex;gap:.4rem;margin-bottom:.32rem;}
+.svc-top input{flex:1;font-weight:600;font-size:.78rem;padding:.4rem .5rem;}
+.svc-del{background:#fee;border:1px solid #fcc;color:#c33;border-radius:3px;padding:.4rem .5rem;font-size:.68rem;cursor:pointer;}
+.svc-del:hover{background:#fdd;}
+.svc-nums{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.32rem;}
+.svc-nums label{font-size:.62rem;color:#888;font-weight:600;display:block;margin-bottom:.15rem;}
+.svc-nums input{width:100%;padding:.35rem .42rem;font-size:.72rem;}
+.svc-total{font-weight:700;color:var(--navy);font-size:.8rem;padding-top:.18rem;}
+
+.add-btn{width:100%;padding:.48rem;background:white;border:1px dashed #aaa;border-radius:4px;
+  font-size:.72rem;color:#666;cursor:pointer;margin-bottom:.5rem;font-family:'DM Sans',sans-serif;}
+.add-btn:hover{border-color:var(--navy);color:var(--navy);background:#f0f4ff;}
+
+.info-box{font-size:.71rem;color:#888;padding:.45rem .65rem;background:#f0f4ff;border:1px solid #d0daff;border-radius:4px;line-height:1.55;margin-bottom:.5rem;}
+
+/* ── PREVIEW PANEL ── */
+.pp{overflow-y:auto;padding:2rem;display:flex;flex-direction:column;gap:1.5rem;align-items:center;min-height:100vh;}
+.pp::-webkit-scrollbar{width:8px;}
+.pp::-webkit-scrollbar-thumb{background:#bbb;border-radius:4px;}
+
+/* ── PROPOSAL PAGE — Letter 816×1056px ── */
+.pg{width:816px;height:1056px;position:relative;overflow:hidden;
+  box-shadow:0 4px 24px rgba(0,0,0,.2);flex-shrink:0;}
+.pg.dk{background:#1e2d4a;color:white;}
+.pg.lt{background:white;color:#1a1a1a;}
+
+/* page header */
+.ph{position:absolute;top:0;left:0;right:0;padding:1.5rem 2.2rem .5rem;
+  display:flex;justify-content:space-between;align-items:flex-start;z-index:2;}
+.ph::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:rgba(255,255,255,.22);}
+.ph.lt-ph::before{background:rgba(0,0,0,.1);}
+.ph-accent{position:absolute;top:0;right:2.2rem;width:160px;height:3px;background:rgba(255,255,255,.7);}
+.ph-accent.la{background:var(--accent);}
+.ph-left{font-size:.67rem;line-height:1.6;}
+.ph-right{font-size:.67rem;line-height:1.6;text-align:right;}
+.ph-logo{border:1px solid rgba(255,255,255,.4);padding:.28rem .55rem;
+  font-size:.5rem;font-weight:700;letter-spacing:.1em;text-align:center;line-height:1.35;}
+.ph-logo.ll{border-color:rgba(0,0,0,.18);color:#666;}
+
+/* page footer */
+.pf{position:absolute;bottom:0;left:0;right:0;padding:.6rem 2.2rem .85rem;
+  display:grid;grid-template-columns:1fr 1fr 1fr;font-size:.62rem;line-height:1.6;
+  border-top:1px solid rgba(255,255,255,.15);}
+.pf.lt-pf{border-top-color:rgba(0,0,0,.08);color:#888;}
+
+/* page content area */
+.pc{position:absolute;top:88px;left:0;right:0;bottom:72px;padding:0 2.2rem;overflow:hidden;}
+
+/* typography */
+.big{font-size:2.8rem;font-weight:300;letter-spacing:-.02em;line-height:1.05;margin-bottom:1.3rem;}
+.big.wh{color:white;}
+.cover-big{font-family:'EB Garamond',serif;font-size:5rem;font-weight:300;letter-spacing:-.03em;line-height:.95;margin-bottom:1.8rem;}
+.seclabel{font-size:.82rem;font-weight:700;margin-bottom:.7rem;}
+.bodytext{font-size:.78rem;line-height:1.75;margin-bottom:.85rem;}
+.bodytext.wh{opacity:.9;}
+.scopeitem{font-size:.78rem;line-height:1.7;color:#444;margin-bottom:.42rem;}
+.scopeitem b{color:#1a1a1a;}
+.scope-out-note{font-style:italic;font-size:.74rem;line-height:1.7;margin-top:1.2rem;color:#666;}
+.bullet-list{margin-left:1rem;margin-top:.4rem;}
+.bullet-list li{font-size:.76rem;color:#555;line-height:1.7;margin-bottom:.32rem;}
+.bullet-list li b{color:#1a1a1a;font-weight:600;}
+.num-list{margin-left:1rem;margin-top:.4rem;}
+.num-list li{font-size:.76rem;color:#555;line-height:1.7;margin-bottom:.32rem;list-style:decimal;}
+
+/* why grid */
+.why-title{font-size:1.9rem;font-weight:300;letter-spacing:-.02em;margin:2rem 0 1.2rem;}
+.why-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.6rem 1.4rem;}
+.why-item h4{font-size:1.1rem;font-weight:300;margin-bottom:.38rem;}
+.why-item p{font-size:.75rem;opacity:.85;line-height:1.6;}
+
+/* deliver grid */
+.dg{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1.3rem .9rem;}
+.di-icon{font-size:.95rem;margin-bottom:.3rem;opacity:.8;}
+.di h4{font-size:.75rem;font-weight:700;margin-bottom:.25rem;}
+.di p{font-size:.68rem;opacity:.82;line-height:1.52;}
+
+/* news logos */
+.news-bar{display:flex;flex-wrap:wrap;gap:1rem 2rem;margin-bottom:2.2rem;align-items:center;}
+.nl{font-size:.78rem;font-weight:700;opacity:.85;letter-spacing:.04em;}
+
+/* estimate */
+.est-title{font-size:2.8rem;font-weight:300;letter-spacing:-.02em;margin-bottom:1.2rem;}
+.tbl-hdr{background:#1e2d4a;color:white;padding:.52rem .9rem;
+  display:flex;justify-content:space-between;font-size:.62rem;font-weight:700;letter-spacing:.09em;text-transform:uppercase;}
+.er{display:flex;align-items:baseline;gap:.4rem;padding:.26rem 0;border-bottom:1px solid #f0f0f0;}
+.er:last-child{border-bottom:none;}
+.er-n{flex:1;font-size:.78rem;}
+.er-sub{font-size:.69rem;color:#666;margin-left:.7rem;margin-bottom:.1rem;}
+.er-q{font-size:.78rem;color:#888;min-width:36px;text-align:right;}
+.er-p{font-size:.78rem;min-width:82px;text-align:right;}
+.er-t{font-size:.78rem;font-weight:600;min-width:82px;text-align:right;}
+.er-sep{height:1px;background:#e0e0e0;margin:.55rem 0;}
+.er-sum{display:flex;justify-content:flex-end;gap:1.5rem;font-size:.78rem;padding:.35rem 0;}
+.er-sum b{font-weight:700;}
+.grand-sep{height:2px;background:#1e2d4a;margin:.4rem 0;}
+.grand-row{display:flex;justify-content:flex-end;gap:1.5rem;font-size:.9rem;font-weight:700;padding:.35rem 0;}
+
+/* acceptance */
+.acc-title{font-size:2.6rem;font-weight:300;letter-spacing:-.02em;margin:1.5rem 0 .55rem;}
+.acc-body{font-size:.78rem;line-height:1.8;color:#555;margin-bottom:1.4rem;}
+.sig-grid{display:grid;grid-template-columns:1fr 1fr;gap:2.5rem;}
+.sig-name{font-size:.78rem;font-weight:700;margin-bottom:.5rem;}
+.sig-row{font-size:.74rem;color:#666;display:flex;align-items:center;gap:.4rem;margin-bottom:.15rem;}
+.sig-row span{min-width:55px;}
+.sig-dash{flex:1;border-bottom:1px dashed #999;height:1.1rem;min-width:100px;}
+.sig-val{font-size:.74rem;color:#444;}
+
+/* export btn */
+.export-btn{position:fixed;bottom:1.5rem;right:1.5rem;z-index:999;
+  background:var(--navy);color:white;border:none;border-radius:6px;
+  padding:.8rem 1.3rem;font-size:.85rem;font-weight:600;cursor:pointer;
+  box-shadow:0 4px 16px rgba(0,0,0,.25);font-family:'DM Sans',sans-serif;display:flex;align-items:center;gap:.45rem;}
+.export-btn:hover{background:#15213a;}
+
+@media print{
+  .fp,.export-btn{display:none!important;}
+  .app{display:block;}
+  .pp{padding:0;gap:0;background:white;max-height:none;overflow:visible;}
+  .pg{box-shadow:none;page-break-after:always;break-after:page;margin:0;}
+  @page{margin:0;size:letter portrait;}
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- ════════ FORM PANEL ════════ -->
+<div class="fp">
+  <div class="fp-logo">CGCG <span>Proposal Editor</span></div>
+
+  <!-- PAGE 1 — COVER -->
+  <div class="sh">Page 1 — Cover</div>
+  <div class="fg"><label>Client Company Name</label><input id="cl-company" placeholder="Company Name"></div>
+  <div class="fg"><label>Client Contact Name</label><input id="cl-name" placeholder="Name Surname"></div>
+  <div class="fg"><label>Service Type</label><input id="cl-service" value="Cybersecurity &amp; IT Due Diligence"></div>
+  <div class="fg"><label>Engagement / Project Name</label><input id="cl-project" placeholder="Media Company (TBD)"></div>
+  <div class="fg-row">
+    <div class="fg"><label>Proposal Date</label><input type="date" id="cl-date"></div>
+    <div class="fg"><label>Period End Date</label><input type="date" id="cl-end"></div>
+  </div>
+
+  <!-- PAGES 2–3 FIXED -->
+  <div class="sh">Pages 2–3 — Fixed</div>
+  <div class="info-box">Always included: <b>Build. Secure. Scale.</b> and <b>What We Deliver</b></div>
+
+  <!-- SCOPE OF WORK -->
+  <div class="sh">Scope of Work Pages</div>
+  <div id="scope-cats"></div>
+  <button class="add-btn" onclick="addScopeCat()">+ Add Category</button>
+
+  <!-- DELIVERABLES -->
+  <div class="sh">Deliverables Pages</div>
+  <div id="deliv-cats"></div>
+  <button class="add-btn" onclick="addDelivCat()">+ Add Category</button>
+
+  <!-- ESTIMATE -->
+  <div class="sh">Last Page — Estimate</div>
+  <div class="info-box">Scope categories appear automatically. Set a price per category below.</div>
+  <div id="cat-prices"></div>
+  <div style="font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.09em;color:#888;margin:.7rem 0 .35rem">Professional Services (One-Time)</div>
+  <div id="svc-oneoff"></div>
+  <button class="add-btn" onclick="addOneoff()">+ Add Professional Service</button>
+
+  <!-- CLIENT SIGNATURE -->
+  <div class="sh">Client Signature</div>
+  <div class="fg"><label>Client Signer Name</label><input id="sig-client" placeholder="Name Surname"></div>
+
+  <!-- COMPANY SIGNATURE LOCKED -->
+  <div class="sh" style="color:#aaa;border-color:#aaa">Company Signature — Locked</div>
+  <div class="fg"><label>Legal Entity</label><div class="locked">Cyber Guardian Consulting Group, LLC.</div></div>
+  <div class="fg"><label>Signer Name</label><div class="locked">Nicholas Martin</div></div>
+  <div class="fg"><label>Title</label><div class="locked">Chief Executive Officer</div></div>
+</div>
+
+<!-- ════════ PREVIEW ════════ -->
+<div class="pp" id="preview"></div>
+</div>
+
+<button class="export-btn" onclick="exportPDF()">&#128229; Download PDF</button>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script>
+// ═══════════════════════════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════════════════════════
+var CO = {
+  name:'CGCG', locs:['Hudson Valley','Hudson Yards','Brooklyn'],
+  phone:'844-724-2424', email:'hello@cgcg.biz', web:'cgcg.biz',
+  sigEntity:'Cyber Guardian Consulting Group, LLC.',
+  sigName:'Nicholas Martin', sigTitle:'Chief Executive Officer'
+};
+
+var S = {
+  cl:{ company:'', name:'', service:'Cybersecurity & IT Due Diligence', project:'', date:'', end:'' },
+  sigClient:'',
+  scopeCats:[
+    { id:'sc1', on:true, name:'Cybersecurity Due Diligence', items:[
+      {id:'si1',on:true,text:'Governance and Risk: Org structure, policies and standards, control framework mapping (NIST or ISO), KPIs.'},
+      {id:'si2',on:true,text:'Identity and Access: SSO or MFA, privileged access, joiner-mover-leaver, contractor or off-shore access.'},
+      {id:'si3',on:true,text:'Network and Cloud Security: Architecture, segmentation, perimeter or WAF or CDN or DDoS, logging or SIEM.'},
+      {id:'si4',on:true,text:'Endpoint, Email and Patch: EDR or AV coverage, MDM posture, patch SLAs, phishing controls, DMARC or SPF or DKIM.'},
+      {id:'si5',on:true,text:'Data Protection and Privacy: Data flows and classification, encryption, retention or DLP, applicable regulations.'},
+      {id:'si6',on:true,text:'Application and API Security: SDLC or CI-CD practices, SAST or DAST, secrets, SBOM or dependency risk, key management.'},
+      {id:'si7',on:true,text:'Third-Party or Vendor Risk: Vendor inventory and criticality, assessments, SLAs, broadcast or post-production partners, CDN.'},
+      {id:'si8',on:true,text:'Incident Response and Resilience: IR plan, tabletop maturity, backups or immutability, RTO or RPO, BCP or DR tests.'},
+      {id:'si9',on:true,text:'Media-Specific Controls: DRM or watermarking, playout or traffic, ad insertion, screeners handling, studio security, leak pathways.'}
+    ]},
+    { id:'sc2', on:true, name:'IT Due Diligence', items:[
+      {id:'si10',on:true,text:'Infrastructure and Operations: On-prem and cloud footprint, capacity or SLOs, observability, cost drivers.'},
+      {id:'si11',on:true,text:'Enterprise Systems: ERP or Finance, HRIS, CRM, ITSM or ticketing, asset management, license position, shadow IT.'},
+      {id:'si12',on:true,text:'Media Platform: Architecture diagrams, scalability limits, performance baselines, multi-region HA or DR, CDN strategy.'},
+      {id:'si13',on:true,text:'Data and Analytics: Data lake or warehouse, ETL, catalog or lineage, access controls, reporting.'},
+      {id:'si14',on:true,text:'IT Financials: OpEx or CapEx baselines, contracts, 12 to 24 month forecast, renewal calendar.'},
+      {id:'si15',on:true,text:'People and Process: Org design, run-books, on-call, vendor SLAs, skills gaps and hiring plan.'},
+      {id:'si16',on:true,text:'Facilities (Targeted): Server or studio rooms, power or cooling, physical access logs, CCTV coverage.'}
+    ]}
+  ],
+  delivCats:[
+    { id:'dc1', on:true, name:'Leadership & Advisory', items:[
+      {id:'di1',on:true,text:'vCIO (Virtual Chief Information Officer)'},
+      {id:'di2',on:true,text:'vCTO (Virtual Chief Technology Officer)'},
+      {id:'di3',on:true,text:'vCISO (Virtual Chief Information Security Officer)'}
+    ]},
+    { id:'dc2', on:true, name:'Cybersecurity Services', items:[
+      {id:'di4',on:true,text:'Third and Fourth Party Vendor Assessments and Active Monitoring'},
+      {id:'di5',on:true,text:'Deep and Dark Web Monitoring'},
+      {id:'di6',on:true,text:'Continuous Penetration Testing'},
+      {id:'di7',on:true,text:'Cybersecurity Policy Modernization and Implementation'}
+    ]}
+  ],
+  oneoff:[
+    {id:'o1', name:'Implementation cost', qty:1, price:0}
+  ],
+  catPrices:{},
+  nid:500
+};
+
+// ═══════════════════════════════════════════════════════════════════════════
+// PERSIST
+// ═══════════════════════════════════════════════════════════════════════════
+function save(){ try{ localStorage.setItem('cgcg_v6', JSON.stringify(S)); }catch(e){} }
+function load(){
+  try{
+    var d = localStorage.getItem('cgcg_v6');
+    if(d) S = JSON.parse(d);
+  }catch(e){}
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════════════════════════════════════════
+function esc(s){
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function fmt(n){
+  return Number(n||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+}
+function fmtDate(d){
+  if(!d) return '';
+  var dt = new Date(d+'T12:00:00');
+  return dt.toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
+}
+function sumArr(arr){
+  return arr.reduce(function(s,x){ return s+(x.qty||1)*(x.price||0); },0);
+}
+function ge(id){ return document.getElementById(id); }
+
+// ═══════════════════════════════════════════════════════════════════════════
+// FORM RENDERING — uses string concatenation, no nested template literals
+// ═══════════════════════════════════════════════════════════════════════════
+function renderScopeCats(){
+  var el = ge('scope-cats'); if(!el) return;
+  var html = '';
+  for(var i=0; i<S.scopeCats.length; i++){
+    var cat = S.scopeCats[i];
+    html += '<div class="cat-block' + (cat.on ? '' : ' off') + '">';
+    html += '<div class="cat-hdr">';
+    html += '<input class="cat-chk" type="checkbox"' + (cat.on ? ' checked' : '') + ' onchange="togScopeCat(\'' + cat.id + '\',this.checked)">';
+    html += '<input class="cat-name-input" value="' + esc(cat.name) + '" placeholder="Category name" onchange="editScopeCat(\'' + cat.id + '\',this.value)">';
+    html += '<button class="cat-del-btn" onclick="delScopeCat(\'' + cat.id + '\')">&#x2715;</button>';
+    html += '</div><div class="cat-body">';
+    for(var j=0; j<cat.items.length; j++){
+      var item = cat.items[j];
+      html += '<div class="item-row' + (item.on ? '' : ' off') + '">';
+      html += '<input class="item-chk" type="checkbox"' + (item.on ? ' checked' : '') + ' onchange="togScopeItem(\'' + cat.id + '\',\'' + item.id + '\',this.checked)">';
+      html += '<textarea class="item-txt" rows="2" onchange="editScopeItem(\'' + cat.id + '\',\'' + item.id + '\',this.value)">' + esc(item.text) + '</textarea>';
+      html += '<button class="item-del" onclick="delScopeItem(\'' + cat.id + '\',\'' + item.id + '\')">&#x2715;</button>';
+      html += '</div>';
+    }
+    html += '<button class="add-item-btn" onclick="addScopeItem(\'' + cat.id + '\')">+ Add item</button>';
+    html += '</div></div>';
+  }
+  el.innerHTML = html;
+}
+
+function renderDelivCats(){
+  var el = ge('deliv-cats'); if(!el) return;
+  var html = '';
+  for(var i=0; i<S.delivCats.length; i++){
+    var cat = S.delivCats[i];
+    html += '<div class="cat-block' + (cat.on ? '' : ' off') + '">';
+    html += '<div class="cat-hdr">';
+    html += '<input class="cat-chk" type="checkbox"' + (cat.on ? ' checked' : '') + ' onchange="togDelivCat(\'' + cat.id + '\',this.checked)">';
+    html += '<input class="cat-name-input" value="' + esc(cat.name) + '" placeholder="Category name" onchange="editDelivCat(\'' + cat.id + '\',this.value)">';
+    html += '<button class="cat-del-btn" onclick="delDelivCat(\'' + cat.id + '\')">&#x2715;</button>';
+    html += '</div><div class="cat-body">';
+    for(var j=0; j<cat.items.length; j++){
+      var item = cat.items[j];
+      html += '<div class="item-row' + (item.on ? '' : ' off') + '">';
+      html += '<input class="item-chk" type="checkbox"' + (item.on ? ' checked' : '') + ' onchange="togDelivItem(\'' + cat.id + '\',\'' + item.id + '\',this.checked)">';
+      html += '<textarea class="item-txt" rows="1" onchange="editDelivItem(\'' + cat.id + '\',\'' + item.id + '\',this.value)">' + esc(item.text) + '</textarea>';
+      html += '<button class="item-del" onclick="delDelivItem(\'' + cat.id + '\',\'' + item.id + '\')">&#x2715;</button>';
+      html += '</div>';
+    }
+    html += '<button class="add-item-btn" onclick="addDelivItem(\'' + cat.id + '\')">+ Add item</button>';
+    html += '</div></div>';
+  }
+  el.innerHTML = html;
+}
+
+function renderCatPrices(){
+  var el = ge('cat-prices'); if(!el) return;
+  var active = S.scopeCats.filter(function(c){ return c.on; });
+  if(!active.length){
+    el.innerHTML = '<div style="font-size:.71rem;color:#bbb;padding:.2rem 0">No scope categories selected.</div>';
+    return;
+  }
+  var html = '';
+  for(var i=0; i<active.length; i++){
+    var cat = active[i];
+    var val = S.catPrices[cat.id] || '';
+    html += '<div class="price-row">';
+    html += '<span class="price-label">' + esc(cat.name) + '</span>';
+    html += '<span class="price-hint">$/mo</span>';
+    html += '<input class="price-input" type="number" placeholder="0.00" step="100" value="' + val + '" onchange="updCatPrice(\'' + cat.id + '\',parseFloat(this.value)||0)">';
+    html += '</div>';
+  }
+  el.innerHTML = html;
+}
+
+function renderOneoff(){
+  var el = ge('svc-oneoff'); if(!el) return;
+  var html = '';
+  for(var i=0; i<S.oneoff.length; i++){
+    var s = S.oneoff[i];
+    html += '<div class="svc-item">';
+    html += '<div class="svc-top"><input value="' + esc(s.name) + '" onchange="updOneoff(' + s.id + ',\'name\',this.value)">';
+    html += '<button class="svc-del" onclick="delOneoff(' + s.id + ')">&#x2715;</button></div>';
+    html += '<div class="svc-nums">';
+    html += '<div><label>Qty</label><input type="number" value="' + s.qty + '" min="1" onchange="updOneoff(' + s.id + ',\'qty\',parseFloat(this.value)||1)"></div>';
+    html += '<div><label>Unit Price</label><input type="number" value="' + s.price + '" step="100" onchange="updOneoff(' + s.id + ',\'price\',parseFloat(this.value)||0)"></div>';
+    html += '<div><label>Total</label><div class="svc-total">$' + fmt((s.qty||1)*(s.price||0)) + '</div></div>';
+    html += '</div></div>';
+  }
+  el.innerHTML = html;
+}
+
+function renderForms(){
+  renderScopeCats();
+  renderDelivCats();
+  renderCatPrices();
+  renderOneoff();
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// FORM ACTIONS
+// ═══════════════════════════════════════════════════════════════════════════
+// Scope cats
+function addScopeCat(){ S.scopeCats.push({id:'sc'+(S.nid++),on:true,name:'Category Name',items:[]}); save();renderForms();renderPreview(); }
+function togScopeCat(id,v){ var c=S.scopeCats.find(function(x){return x.id===id;}); if(c){c.on=v;save();renderForms();renderPreview();} }
+function editScopeCat(id,v){ var c=S.scopeCats.find(function(x){return x.id===id;}); if(c){c.name=v;save();renderPreview();} }
+function delScopeCat(id){ S.scopeCats=S.scopeCats.filter(function(x){return x.id!==id;}); save();renderForms();renderPreview(); }
+// Scope items
+function addScopeItem(cid){ var c=S.scopeCats.find(function(x){return x.id===cid;}); if(c){c.items.push({id:'si'+(S.nid++),on:true,text:'New item'});save();renderForms();renderPreview();} }
+function togScopeItem(cid,iid,v){ var c=S.scopeCats.find(function(x){return x.id===cid;}); if(c){var it=c.items.find(function(x){return x.id===iid;}); if(it){it.on=v;save();renderScopeCats();renderPreview();}} }
+function editScopeItem(cid,iid,v){ var c=S.scopeCats.find(function(x){return x.id===cid;}); if(c){var it=c.items.find(function(x){return x.id===iid;}); if(it){it.text=v;save();renderPreview();}} }
+function delScopeItem(cid,iid){ var c=S.scopeCats.find(function(x){return x.id===cid;}); if(c){c.items=c.items.filter(function(x){return x.id!==iid;});save();renderScopeCats();renderPreview();} }
+// Deliv cats
+function addDelivCat(){ S.delivCats.push({id:'dc'+(S.nid++),on:true,name:'Category Name',items:[]}); save();renderForms();renderPreview(); }
+function togDelivCat(id,v){ var c=S.delivCats.find(function(x){return x.id===id;}); if(c){c.on=v;save();renderDelivCats();renderPreview();} }
+function editDelivCat(id,v){ var c=S.delivCats.find(function(x){return x.id===id;}); if(c){c.name=v;save();renderPreview();} }
+function delDelivCat(id){ S.delivCats=S.delivCats.filter(function(x){return x.id!==id;}); save();renderForms();renderPreview(); }
+// Deliv items
+function addDelivItem(cid){ var c=S.delivCats.find(function(x){return x.id===cid;}); if(c){c.items.push({id:'di'+(S.nid++),on:true,text:'New item'});save();renderDelivCats();renderPreview();} }
+function togDelivItem(cid,iid,v){ var c=S.delivCats.find(function(x){return x.id===cid;}); if(c){var it=c.items.find(function(x){return x.id===iid;}); if(it){it.on=v;save();renderDelivCats();renderPreview();}} }
+function editDelivItem(cid,iid,v){ var c=S.delivCats.find(function(x){return x.id===cid;}); if(c){var it=c.items.find(function(x){return x.id===iid;}); if(it){it.text=v;save();renderPreview();}} }
+function delDelivItem(cid,iid){ var c=S.delivCats.find(function(x){return x.id===cid;}); if(c){c.items=c.items.filter(function(x){return x.id!==iid;});save();renderDelivCats();renderPreview();} }
+// Prices
+function updCatPrice(id,v){ S.catPrices[id]=v; save();renderPreview(); }
+// Oneoff
+function addOneoff(){ S.oneoff.push({id:S.nid++,name:'New Service',qty:1,price:0}); save();renderForms();renderPreview(); }
+function delOneoff(id){ S.oneoff=S.oneoff.filter(function(x){return x.id!==id;}); save();renderForms();renderPreview(); }
+function updOneoff(id,f,v){ var s=S.oneoff.find(function(x){return x.id===id;}); if(s){s[f]=v;save();renderOneoff();renderPreview();} }
+
+// ═══════════════════════════════════════════════════════════════════════════
+// PAGE BUILDING — all string concatenation, zero nested template literals
+// ═══════════════════════════════════════════════════════════════════════════
+
+// Shared: header bar
+function pgHeader(dark){
+  var locs = CO.locs;
+  var html = '';
+  html += '<div class="ph' + (dark ? '' : ' lt-ph') + '">';
+  html += '<div class="ph-accent' + (dark ? '' : ' la') + '"></div>';
+  if(dark){
+    html += '<div class="ph-left" style="opacity:.85"><b>' + CO.name + '</b><br>' + locs.join('<br>') + '</div>';
+    html += '<div class="ph-right" style="opacity:.85">' + CO.phone + '<br>' + CO.email + '<br>' + CO.web + '</div>';
+    html += '<div class="ph-logo">CYBER<br>GUARDIAN<br>CONSULTING<br>GROUP</div>';
+  } else {
+    html += '<div class="ph-left" style="color:#666"><b style="color:#333">' + CO.name + '</b><br>' + locs.join('<br>') + '</div>';
+    html += '<div class="ph-right" style="color:#666">' + CO.phone + '<br>' + CO.email + '<br>' + CO.web + '</div>';
+    html += '<div class="ph-logo ll">CYBER<br>GUARDIAN<br>CONSULTING<br>GROUP</div>';
+  }
+  html += '</div>';
+  return html;
+}
+
+// Shared: footer
+function pgFooter(dark){
+  var locs = CO.locs;
+  var cls = dark ? 'pf' : 'pf lt-pf';
+  var st = dark ? 'color:rgba(255,255,255,.7)' : '';
+  var html = '<div class="' + cls + '" style="' + st + '">';
+  html += '<div><b>' + CO.name + '</b><br>' + (locs[0]||'') + '<br>' + (locs[1]||'') + '<br>' + (locs[2]||'') + '</div>';
+  html += '<div>' + CO.phone + '<br>' + CO.email + '<br>' + CO.web + '</div>';
+  html += '<div style="text-align:right"><div style="display:inline-block;border:1px solid currentColor;padding:.22rem .45rem;font-size:.5rem;font-weight:700;letter-spacing:.1em;line-height:1.35">CYBER<br>GUARDIAN<br>CONSULTING<br>GROUP</div></div>';
+  html += '</div>';
+  return html;
+}
+
+// Wrap into a page div
+function wrapPage(dark, content){
+  var cls = dark ? 'pg dk' : 'pg lt';
+  return '<div class="' + cls + '">' + pgHeader(dark) + '<div class="pc">' + content + '</div>' + pgFooter(dark) + '</div>';
+}
+
+// PAGE 1 — Cover
+function buildPage1(){
+  var dateStr = S.cl.date ? fmtDate(S.cl.date) : new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
+  var endStr = S.cl.end ? fmtDate(S.cl.end) : 'November 30, 2025';
+  var html = '';
+  html += '<div class="cover-big">Proposal</div>';
+  html += '<div style="font-size:1.05rem;font-weight:600;line-height:1.4;margin-bottom:1.5rem">';
+  html += esc(S.cl.service || 'Cybersecurity & IT Due Diligence') + '<br>';
+  html += esc(S.cl.project || 'Media Company (TBD)') + '</div>';
+  if(S.cl.company || S.cl.name){
+    html += '<div style="font-size:.82rem;opacity:.75;margin-bottom:.22rem">Prepared for</div>';
+    html += '<div style="font-size:.98rem;font-weight:700;margin-bottom:1.3rem">' + esc(S.cl.company || S.cl.name) + '</div>';
+  }
+  html += '<div style="font-size:.82rem;line-height:1.95">';
+  html += '<div><b>Date:</b> ' + esc(dateStr) + '</div>';
+  html += '<div><b>Period of Performance:</b><br>Upon authorization through ' + esc(endStr) + ' (30-day sprint)</div>';
+  html += '</div>';
+  // mesh SVG
+  html += buildMesh();
+  return wrapPage(true, html);
+}
+
+// PAGE 2 — Build Secure Scale
+function buildPage2(){
+  var html = '';
+  html += '<div class="big wh">Build. Secure. Scale.</div>';
+  html += '<div class="bodytext wh" style="font-size:.82rem">Enterprise-grade IT and cybersecurity for startups to Fortune 500.</div>';
+  html += '<div class="bodytext wh">We design and run the tech backbone of high-growth companies, so you can move faster with confidence.</div>';
+  html += '<div class="bodytext wh">For over a decade, Cyber Guardian Consulting Group delivers a modern, security-first operating environment for small, midsize, and enterprise organizations. What began as a next-generation cybersecurity practice has expanded at our clients\' request into managed IT, cloud operations, backup and recovery, low-voltage infrastructure, ERP, EHR and EMR support, and executive advisory. Our culture is practical, outcomes-driven, and collaborative.</div>';
+  html += '<div class="why-title">Why teams choose us</div>';
+  html += '<div class="why-grid">';
+  html += '<div class="why-item"><h4>Fortune-100 caliber standards</h4><p>Next-generation security and reliability tailored to your size.</p></div>';
+  html += '<div class="why-item"><h4>Full-stack coverage</h4><p>From cables in the ceiling to workloads in the cloud to core business systems like ERP and EHR, one accountable partner.</p></div>';
+  html += '<div class="why-item" style="margin-top:1.4rem"><h4>Speed and stability</h4><p>Faster deployments, fewer outages, predictable costs.</p></div>';
+  html += '<div class="why-item" style="margin-top:1.4rem"><h4>People first</h4><p>A seasoned team that speaks business, not jargon.</p></div>';
+  html += '</div>';
+  return wrapPage(true, html);
+}
+
+// PAGE 3 — What We Deliver
+function buildPage3(){
+  var delivers = [
+    {i:'&#9201;',n:'Managed IT & Helpdesk',d:'Responsive 24/7 support and proactive device and server management'},
+    {i:'&#128737;',n:'Cybersecurity',d:'Risk assessments, hardening, monitoring, incident response, and compliance readiness'},
+    {i:'&#9729;',n:'Cloud Management',d:'AWS, Azure, and Google Cloud architecture, migrations, and cost optimization'},
+    {i:'&#128190;',n:'Backup & Continuity',d:'Air-gapped backups, rapid recovery, and business continuity planning'},
+    {i:'&#128176;',n:'ERP Implementation & Support',d:'Selection, implementation, integrations, and automation across finance, operations, and supply chain'},
+    {i:'&#127973;',n:'EHR/EMR Integration & Support',d:'Interoperability with HL7 and FHIR, secure data migrations, HIPAA-aligned configurations'},
+    {i:'&#128421;',n:'PMS & POS Support',d:'End-to-end support for hospitality and retail platforms'},
+    {i:'&#128268;',n:'Low-Voltage & Infrastructure',d:'Cabling, cameras, network design, and secure facility build-outs'},
+    {i:'&#128084;',n:'Advisory Services',d:'CIO and CISO-level guidance aligned to revenue, risk, and growth targets'}
+  ];
+  var html = '';
+  html += '<div style="font-size:1.3rem;font-weight:700;line-height:1.3;margin-bottom:1.2rem">These prominent news outlets are buzzing about us and our products!</div>';
+  html += '<div class="news-bar">';
+  html += '<span class="nl" style="font-style:italic">The &#x229B;INDEPENDENT</span>';
+  html += '<span class="nl">&#x25CF; USA TODAY</span>';
+  html += '<span class="nl" style="font-size:.7rem;letter-spacing:.1em">THE WALL STREET JOURNAL.</span>';
+  html += '<span class="nl" style="font-size:1.4rem;color:#e03">TIME</span>';
+  html += '<span class="nl" style="font-size:.7rem;letter-spacing:.07em">THE JERUSALEM POST</span>';
+  html += '<span class="nl">Market<span style="color:#7dc242">Watch</span></span>';
+  html += '</div>';
+  html += '<div class="big wh" style="margin-bottom:1.1rem">What we deliver</div>';
+  html += '<div class="dg">';
+  for(var i=0; i<delivers.length; i++){
+    var d = delivers[i];
+    html += '<div class="di"><div class="di-icon">' + d.i + '</div><h4>' + d.n + '</h4><p>' + d.d + '</p></div>';
+  }
+  html += '</div>';
+  return wrapPage(true, html);
+}
+
+// SCOPE PAGES — one per active category
+function buildScopePages(){
+  var pages = [];
+  var active = S.scopeCats.filter(function(c){ return c.on; });
+  for(var i=0; i<active.length; i++){
+    var cat = active[i];
+    var isLast = (i === active.length - 1);
+    var items = cat.items.filter(function(x){ return x.on; });
+    var html = '';
+    html += '<div class="big">Scope of Work</div>';
+    html += '<div class="seclabel">' + esc(cat.name) + '</div>';
+    for(var j=0; j<items.length; j++){
+      html += '<div class="scopeitem"><b>' + (j+1) + '.</b> ' + esc(items[j].text) + '</div>';
+    }
+    if(isLast){
+      html += '<div class="scope-out-note"><b>Out-of-Scope (available as options):</b> External penetration test or red team, broad secure code review, compliance certifications (SOC 2 or ISO 27001), live DR failover exercises, eDiscovery or forensics of past incidents.</div>';
+    }
+    pages.push(wrapPage(false, html));
+  }
+  return pages;
+}
+
+// DELIVERABLE PAGES — one per active category
+var DC = {
+  'vcio':{ title:'vCIO (Virtual Chief Information Officer)',
+    intro:'Our vCIO provides high-level, executive IT leadership on a flexible basis, serving as a strategic advisor and coordinator for all matters related to information technology. Our responsibilities include:',
+    bullets:['<b>IT Strategy and Alignment:</b> Establishing and maintaining a comprehensive IT roadmap aligned with the organization\'s business goals.',
+      '<b>Vendor and Budget Management:</b> Overseeing technology vendors, negotiating contracts, and optimizing IT expenditures.',
+      '<b>Technology Lifecycle Management:</b> Identifying, evaluating, and prioritizing technology upgrades and infrastructure improvements.',
+      '<b>Process and Productivity Optimization:</b> Designing and refining IT processes that enhance employee productivity and support business continuity.',
+      '<b>Executive Reporting and Advisory:</b> Communicating IT performance metrics and strategic recommendations to senior leadership.']},
+  'vcto':{ title:'vCTO (Virtual Chief Technology Officer)',
+    intro:'Our vCTO provides high-level, executive technical leadership on a flexible basis, serving as a strategic advisor for all matters related to technology innovation and product development. Our responsibilities include:',
+    bullets:['<b>Technology Vision and Innovation:</b> Establishing a forward-looking technology strategy aligned with the organization\'s product roadmap.',
+      '<b>Architecture and Engineering Oversight:</b> Ensuring adherence to best practices in software development and system architecture.',
+      '<b>Product Development and Delivery:</b> Identifying and prioritizing technical requirements; tracking product milestones to successful launch.',
+      '<b>Research and Development Leadership:</b> Fostering a culture of innovation and guiding R&amp;D initiatives that drive competitive advantage.',
+      '<b>Stakeholder Alignment:</b> Communicating technical vision and development progress to senior leadership and the board.']},
+  'vciso':{ title:'vCISO (Virtual Chief Information Security Officer)',
+    intro:'Our vCISO provides high-level, executive security leadership on a flexible basis, serving as a strategic advisor for all matters related to information security. Our responsibilities include:',
+    bullets:['<b>Security Program Governance:</b> Establishing and maintaining a holistic cybersecurity program aligned with the organization\'s risk tolerance.',
+      '<b>Regulatory and Compliance Oversight:</b> Ensuring adherence to relevant laws (GDPR, HIPAA, CCPA) and industry standards (PCI DSS, ISO 27001).',
+      '<b>Risk Management and Mitigation:</b> Identifying, evaluating, and prioritizing cyber risks; recommending controls and remediation actions.',
+      '<b>Policy and Procedure Development:</b> Drafting, implementing, and updating security policies and procedures.',
+      '<b>Board-Level Reporting:</b> Communicating security updates, metrics, and recommendations to senior leadership and the board.']},
+  'vendor':{ title:'Third and Fourth Party Vendor Assessments and Active Monitoring',
+    intro:'Initial and Periodic Vendor Risk Assessments ensure that all third-party organizations with access to sensitive data maintain robust cybersecurity practices. This involves:',
+    bullets:['<b>Comprehensive Due Diligence:</b> Reviewing vendor security policies, controls, certifications, and track record for breaches.',
+      '<b>Risk Scoring and Classification:</b> Assigning risk levels to vendors based on data sensitivity and regulatory requirements.',
+      '<b>Ongoing Monitoring:</b> Conducting periodic re-assessments to capture changes in vendor operations and threat landscape.',
+      '<b>Compliance Verification:</b> Checking adherence to security frameworks (SOC 2, HITRUST) and your organization\'s standards.',
+      '<b>Remediation and Enforcement:</b> Identifying areas of non-compliance and working with vendors to address gaps.']},
+  'darkweb':{ title:'Deep and Dark Web Monitoring',
+    intro:'',
+    bullets:['<b>Data Breach &amp; Infostealer Log Monitoring:</b> Proactive detection of your corporate credentials within newly leaked databases.',
+      '<b>Account Takeover Prevention:</b> Cross-referencing compromised credentials against your employee and customer accounts.',
+      '<b>External Attack Surface Management:</b> Continuous discovery and monitoring of all your internet-facing assets.',
+      '<b>Digital Executive Protection:</b> High-priority monitoring of your leadership team\'s personal information and digital footprint.',
+      '<b>Brand Protection &amp; Impersonation Detection:</b> Monitoring the clear and dark web for fake profiles and fraudulent websites.',
+      '<b>Cybersquatting &amp; Phishing Domain Detection:</b> Identifying look-alike domains registered by malicious actors.',
+      '<b>Stolen Session Cookie Detection:</b> Identification of compromised session cookies on dark web markets.',
+      '<b>Automated Takedown Initiation:</b> Initiating takedown process for fraudulent websites and fake social media profiles.']},
+  'pentest':{ title:'Continuous Penetration Testing',
+    intro:'Continuous Penetration Testing involves authorized, simulated cyberattacks against your organization\'s digital infrastructure. Key aspects include:',
+    bullets:['<b>Realistic Attack Simulation:</b> Emulating internal and external threat vectors to understand how adversaries might exploit weaknesses.',
+      '<b>Scope and Methodology:</b> Testing networks, applications, APIs, and critical assets using industry-recognized frameworks (OWASP, PTES).',
+      '<b>Technical Exploitation and Analysis:</b> Attempting to bypass controls and escalate privileges, pinpointing specific vulnerabilities.',
+      '<b>Reporting and Recommendations:</b> Delivering detailed reports outlining each vulnerability, its risk rating, and remediation steps.',
+      '<b>Continuous Improvement:</b> Providing guidance on patch management, system hardening, and ongoing monitoring.']},
+  'policy':{ title:'Cybersecurity Policy Modernization and Implementation',
+    intro:'',
+    numbered:['Executive summary: A high-level overview of findings, including key risks and recommendations.',
+      'Risk assessment report: A detailed report outlining identified risks to the organization\'s systems and data.',
+      'Security policies and procedures: Written policies outlining the organization\'s approach to cybersecurity.',
+      'Security architecture document: Outlines the design and configuration of existing security systems.',
+      'Risk management plan: Steps the organization will take to manage identified risks.',
+      'Training and awareness materials: Materials to educate employees about cybersecurity risks.',
+      'Security testing results: Results of security testing conducted as part of the assessment.',
+      'Incident response plan: Steps to be taken in the event of a security incident.',
+      'Compliance report: Details the organization\'s compliance with relevant regulations.',
+      'Remediation plan: Steps to address identified vulnerabilities and improve security posture.']}
+};
+
+function matchDC(text){
+  var t = text.toLowerCase();
+  if(t.indexOf('vcio') !== -1 || t.indexOf('chief information officer') !== -1) return DC['vcio'];
+  if(t.indexOf('vcto') !== -1 || t.indexOf('chief technology officer') !== -1) return DC['vcto'];
+  if(t.indexOf('vciso') !== -1 || t.indexOf('chief information security') !== -1) return DC['vciso'];
+  if(t.indexOf('vendor') !== -1 || t.indexOf('third') !== -1) return DC['vendor'];
+  if(t.indexOf('dark web') !== -1 || t.indexOf('deep') !== -1) return DC['darkweb'];
+  if(t.indexOf('penetration') !== -1 || t.indexOf('pen test') !== -1) return DC['pentest'];
+  if(t.indexOf('policy') !== -1 || t.indexOf('modernization') !== -1) return DC['policy'];
+  return null;
+}
+
+function buildDelivPages(){
+  var pages = [];
+  var active = S.delivCats.filter(function(c){ return c.on; });
+  for(var i=0; i<active.length; i++){
+    var cat = active[i];
+    var activeItems = cat.items.filter(function(x){ return x.on; });
+    var html = '<div class="big">Deliverables</div>';
+    html += '<div style="font-size:1rem;font-weight:600;margin-bottom:1.1rem;color:#1a1a1a">' + esc(cat.name) + '</div>';
+    for(var j=0; j<activeItems.length; j++){
+      var item = activeItems[j];
+      var c = matchDC(item.text);
+      if(c){
+        html += '<div style="margin-bottom:1.2rem">';
+        html += '<div class="seclabel">' + c.title + '</div>';
+        if(c.intro) html += '<div class="bodytext">' + c.intro + '</div>';
+        if(c.bullets){
+          html += '<ul class="bullet-list">';
+          for(var k=0; k<c.bullets.length; k++) html += '<li>' + c.bullets[k] + '</li>';
+          html += '</ul>';
+        }
+        if(c.numbered){
+          html += '<ol class="num-list">';
+          for(var k=0; k<c.numbered.length; k++) html += '<li>' + c.numbered[k] + '</li>';
+          html += '</ol>';
+        }
+        html += '</div>';
+      } else {
+        html += '<div style="margin-bottom:.8rem"><div class="seclabel">' + esc(item.text) + '</div></div>';
+      }
+    }
+    pages.push(wrapPage(false, html));
+  }
+  return pages;
+}
+
+// ESTIMATE PAGE
+function buildEstimate(){
+  var active = S.scopeCats.filter(function(c){ return c.on; });
+  var catTotal = 0;
+  for(var i=0; i<active.length; i++) catTotal += (S.catPrices[active[i].id] || 0);
+  var oTotal = sumArr(S.oneoff);
+  var grand = catTotal + oTotal;
+
+  var html = '<div class="est-title">Estimate</div>';
+
+  // Managed services from scope categories
+  if(active.length){
+    html += '<div class="tbl-hdr"><span>Managed Services</span><span>Paid Monthly</span></div>';
+    for(var i=0; i<active.length; i++){
+      var cat = active[i];
+      var price = S.catPrices[cat.id] || 0;
+      var items = cat.items.filter(function(x){ return x.on; });
+      html += '<div style="padding:.3rem 0 .15rem;border-bottom:1px solid #f0f0f0">';
+      html += '<div class="er"><span class="er-n" style="font-weight:700">' + esc(cat.name) + '</span><span class="er-q">1</span><span class="er-p">$' + fmt(price) + '</span><span class="er-t">$' + fmt(price) + '</span></div>';
+      for(var j=0; j<items.length; j++) html += '<div class="er-sub">&#x2022; ' + esc(items[j].text) + '</div>';
+      html += '</div>';
+    }
+    html += '<div class="er-sep"></div>';
+    html += '<div class="er-sum"><span style="color:#888">Managed Total</span><b>$' + fmt(catTotal) + '/mo</b></div>';
+  }
+
+  // Professional services
+  if(S.oneoff.length){
+    html += '<div class="tbl-hdr" style="margin-top:.8rem"><span>Professional Services</span><span>One-Time Fee</span></div>';
+    for(var i=0; i<S.oneoff.length; i++){
+      var s = S.oneoff[i];
+      html += '<div class="er" style="padding:.4rem 0"><span class="er-n">' + esc(s.name) + '</span><span class="er-q">' + s.qty + '</span><span class="er-p">$' + fmt(s.price) + '</span><span class="er-t">$' + fmt((s.qty||1)*(s.price||0)) + '</span></div>';
+    }
+    html += '<div class="er-sep"></div>';
+    html += '<div class="er-sum"><span style="color:#888">One-Time Total</span><b>$' + fmt(oTotal) + '</b></div>';
+  }
+
+  if(active.length || S.oneoff.length){
+    html += '<div class="grand-sep"></div>';
+    html += '<div class="grand-row"><span>Grand Total</span><b>$' + fmt(grand) + '</b></div>';
+  }
+
+  // Acceptance
+  html += '<div class="acc-title">Acceptance</div>';
+  html += '<div class="acc-body">By executing this Service Provider Agreement, Client agrees to purchase the services designated above and further agrees that the services shall be subject to the attached "Terms of Agreement", which are incorporated herein by reference as though set forth in full.</div>';
+  html += '<div class="sig-grid">';
+  // Client
+  html += '<div>';
+  html += '<div class="sig-name">Client: ' + esc(S.sigClient || 'Name Surname') + '</div>';
+  html += '<div class="sig-row"><span>Name:</span><div class="sig-dash"></div></div>';
+  html += '<div class="sig-row"><span>Title:</span><span class="sig-val">Authorized Signatory</span></div>';
+  html += '<div class="sig-row" style="margin-top:.5rem"><span>Signature:</span><div class="sig-dash"></div></div>';
+  html += '<div class="sig-row"><span>Date:</span><div class="sig-dash"></div></div>';
+  html += '</div>';
+  // Company (locked)
+  html += '<div>';
+  html += '<div class="sig-name">' + esc(CO.sigEntity) + '</div>';
+  html += '<div class="sig-row"><span>Name:</span><span class="sig-val">' + esc(CO.sigName) + '</span></div>';
+  html += '<div class="sig-row"><span>Title:</span><span class="sig-val">' + esc(CO.sigTitle) + '</span></div>';
+  html += '<div class="sig-row" style="margin-top:.5rem"><span>Signature:</span><div class="sig-dash"></div></div>';
+  html += '<div class="sig-row"><span>Date:</span><div class="sig-dash"></div></div>';
+  html += '</div>';
+  html += '</div>';
+
+  return wrapPage(false, html);
+}
+
+// MESH SVG for cover
+function buildMesh(){
+  var pts = [];
+  var rows=11, cols=17;
+  for(var r=0;r<rows;r++){
+    for(var c=0;c<cols;c++){
+      var x = (c/(cols-1))*860 + (Math.random()-.5)*45;
+      var y = 380 - (r/rows)*330 + (Math.random()-.5)*25;
+      var wave = Math.sin((c/cols)*Math.PI*1.5+r*.4)*70;
+      pts.push({x:x, y:y+wave-(r*7)});
+    }
+  }
+  var lines = '';
+  for(var r=0;r<rows;r++){
+    for(var c=0;c<cols;c++){
+      var i = r*cols+c;
+      if(c+1<cols) lines += '<line x1="'+pts[i].x.toFixed(1)+'" y1="'+pts[i].y.toFixed(1)+'" x2="'+pts[i+1].x.toFixed(1)+'" y2="'+pts[i+1].y.toFixed(1)+'" stroke="white" stroke-width=".5"/>';
+      if(r+1<rows) lines += '<line x1="'+pts[i].x.toFixed(1)+'" y1="'+pts[i].y.toFixed(1)+'" x2="'+pts[(r+1)*cols+c].x.toFixed(1)+'" y2="'+pts[(r+1)*cols+c].y.toFixed(1)+'" stroke="white" stroke-width=".5"/>';
+      lines += '<circle cx="'+pts[i].x.toFixed(1)+'" cy="'+pts[i].y.toFixed(1)+'" r="1.3" fill="white" opacity=".5"/>';
+    }
+  }
+  return '<svg style="position:absolute;bottom:0;left:0;width:100%;pointer-events:none;opacity:.28" viewBox="0 0 816 380" xmlns="http://www.w3.org/2000/svg">' + lines + '</svg>';
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// RENDER PREVIEW
+// ═══════════════════════════════════════════════════════════════════════════
+function renderPreview(){
+  var parts = [];
+  parts.push(buildPage1());
+  parts.push(buildPage2());
+  parts.push(buildPage3());
+  var scopePages = buildScopePages();
+  for(var i=0;i<scopePages.length;i++) parts.push(scopePages[i]);
+  var delivPages = buildDelivPages();
+  for(var i=0;i<delivPages.length;i++) parts.push(delivPages[i]);
+  parts.push(buildEstimate());
+  ge('preview').innerHTML = parts.join('');
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// PDF EXPORT
+// ═══════════════════════════════════════════════════════════════════════════
+function exportPDF(){
+  var name = S.cl.company || S.cl.name || 'Proposal';
+  var form = document.querySelector('.fp');
+  var btn = document.querySelector('.export-btn');
+  form.style.display = 'none';
+  btn.style.display = 'none';
+  document.body.style.background = 'white';
+  var el = ge('preview');
+  if(typeof html2pdf !== 'undefined'){
+    html2pdf().set({
+      margin: 0,
+      filename: name + '.pdf',
+      image: {type:'jpeg', quality:.98},
+      html2canvas: {scale:2, useCORS:true, allowTaint:true, logging:false},
+      jsPDF: {orientation:'portrait', unit:'mm', format:'letter'},
+      pagebreak: {mode:['css','legacy'], before:'.pg'}
+    }).from(el).save().then(function(){
+      form.style.display = '';
+      btn.style.display = '';
+      document.body.style.background = '';
+    });
+  } else {
+    window.print();
+    form.style.display = '';
+    btn.style.display = '';
+    document.body.style.background = '';
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// BINDINGS + INIT
+// ═══════════════════════════════════════════════════════════════════════════
+function setupBindings(){
+  function bind(id, cb){
+    var el = ge(id);
+    if(el) el.addEventListener('change', function(e){ cb(e.target.value); save(); renderPreview(); });
+  }
+  bind('cl-company', function(v){ S.cl.company=v; });
+  bind('cl-name',    function(v){ S.cl.name=v; });
+  bind('cl-service', function(v){ S.cl.service=v; });
+  bind('cl-project', function(v){ S.cl.project=v; });
+  bind('cl-date',    function(v){ S.cl.date=v; });
+  bind('cl-end',     function(v){ S.cl.end=v; });
+  bind('sig-client', function(v){ S.sigClient=v; });
+}
+
+function populateFields(){
+  function s(id,v){ var el=ge(id); if(el) el.value=v||''; }
+  s('cl-company', S.cl.company);
+  s('cl-name',    S.cl.name);
+  s('cl-service', S.cl.service);
+  s('cl-project', S.cl.project);
+  s('cl-date',    S.cl.date);
+  s('cl-end',     S.cl.end);
+  s('sig-client', S.sigClient);
+}
+
+// RUN
+load();
+populateFields();
+setupBindings();
+renderForms();
+renderPreview();
+</script>
+</body>
+</html>
